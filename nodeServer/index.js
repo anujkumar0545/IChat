@@ -1,24 +1,25 @@
-const http = require('http');
-const SocketIO = require('socket.io');
-
-const server = http.createServer();
-const io = SocketIO(server);
+// Node server which will handle socket io connections
+const io = require('socket.io')(8000,{ cors: { origin: '*' } });
 
 const users = {};
 
-io.on('connection', socket => {
-    socket.on('new-user-joined', name => {
-        console.log("New user:", name);
+io.on('connection', socket =>{
+    // If any new user joins, let other users connected to the server know!
+    socket.on('new-user-joined', name =>{ 
         users[socket.id] = name;
         socket.broadcast.emit('user-joined', name);
     });
 
-    socket.on('send', message => {
-        io.emit('receive', { message: message, name: users[socket.id] });
+    // If someone sends a message, broadcast it to other people
+    socket.on('send', message =>{
+        socket.broadcast.emit('receive', {message: message, name: users[socket.id]})
     });
-});
 
-const PORT = process.env.PORT || 8000; // Use process.env.PORT if available
-server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+    // If someone leaves the chat, let others know 
+    socket.on('disconnect', message =>{
+        socket.broadcast.emit('left', users[socket.id]);
+        delete users[socket.id];
+    });
+
+
+})

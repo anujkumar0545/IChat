@@ -17,6 +17,6 @@ const naam = prompt("Enter your name to join the chat room");
 socket.emit('new-user-joined', naam)
 
 socket.on('user-joined', naam=>{
-    append(`${naam} joined the chat`, right)
+    append(`${naam} joined the chat`, 'right');
 
 })
